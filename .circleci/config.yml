@@ -14,8 +14,8 @@ jobs:
       - checkout
       - run: sh ./tests/fix_puppeteer.sh
       - run: npm install
-      - run: 
-          command : npm run test:all
+      - run:
+          command : npx vcr
           no_output_timeout : 30m
 workflows:
   version: 2

@@ -53,7 +53,9 @@
     "react-document-title": "^2.0.3",
     "react-dom": "^16.5.1",
     "react-fittext": "^1.0.0",
-    "react-router-dom": "^4.3.1"
+    "react-router-dom": "^4.3.1",
+    "umi-plugin-vcr": "^0.0.1-alpha.17",
+    "vcr-cli": "^0.0.1-alpha.19"
   },
   "devDependencies": {
     "@types/react": "^16.7.6",
@@ -75,7 +77,6 @@
     "eslint-plugin-react": "^7.11.1",
     "gh-pages": "^2.0.1",
     "husky": "^1.1.2",
-    "jest-puppeteer": "^3.5.1",
     "lint-staged": "^8.0.4",
     "merge-umi-mock-data": "^0.0.3",
     "mockjs": "^1.0.1-beta3",
