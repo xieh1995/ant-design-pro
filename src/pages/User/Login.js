@@ -48,6 +48,7 @@ class LoginPage extends Component {
         payload: {
           ...values,
           type,
+          grant_type: 'password',
         },
       });
     }
@@ -81,7 +82,7 @@ class LoginPage extends Component {
               login.type === 'account' &&
               !submitting &&
               this.renderMessage(formatMessage({ id: 'app.login.message-invalid-credentials' }))}
-            <UserName name="userName" placeholder="username: admin or user" />
+            <UserName name="username" placeholder="username: admin or user" />
             <Password
               name="password"
               placeholder="password: ant.design"

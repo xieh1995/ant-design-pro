@@ -3,6 +3,7 @@ import { notification } from 'antd';
 import router from 'umi/router';
 import hash from 'hash.js';
 import { isAntdPro } from './utils';
+import { setAuthority, getToken, setToken } from '@/utils/authority';
 
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -90,10 +91,21 @@ export default function request(url, option) {
     if (!(newOptions.body instanceof FormData)) {
       newOptions.headers = {
         Accept: 'application/json',
-        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Type': 'application/x-www-form-urlencoded',
         ...newOptions.headers,
       };
-      newOptions.body = JSON.stringify(newOptions.body);
+      //oauth2接口不支持request payload json
+      const params = newOptions.body;
+      let body = null;
+      if (params != null) {
+        body = Object.keys(params)
+          .map(function(key) {
+            return key + '=' + params[key];
+          })
+          .join('&');
+      }
+
+      newOptions.body = body;
     } else {
       // newOptions.body is FormData
       newOptions.headers = {
@@ -101,6 +113,24 @@ export default function request(url, option) {
         ...newOptions.headers,
       };
     }
+    //oauth2 header
+    let authHeader = null;
+    if (url.endsWith('/login/token') || url.endsWith('/oauth/token')) {
+      //获取token 刷新token
+      authHeader = 'Basic bXktdHJ1c3RlZC1jbGllbnQ6c2VjcmV01';
+    } else {
+      let access_token = getToken('access_token');
+      console.log(access_token);
+      if (access_token == null) {
+        // 没有登陆
+        //跳转登陆
+        router.push('/user/login');
+        return;
+      } else {
+        authHeader = 'bearer ' + access_token;
+      }
+    }
+    newOptions.headers.Authorization = authHeader;
   }
 
   const expirys = options.expirys && 60;
@@ -118,38 +148,40 @@ export default function request(url, option) {
       sessionStorage.removeItem(`${hashcode}:timestamp`);
     }
   }
-  return fetch(url, newOptions)
-    .then(checkStatus)
-    .then(response => cachedSave(response, hashcode))
-    .then(response => {
-      // DELETE and 204 do not return data by default
-      // using .json will report an error.
-      if (newOptions.method === 'DELETE' || response.status === 204) {
-        return response.text();
-      }
-      return response.json();
-    })
-    .catch(e => {
-      const status = e.name;
-      if (status === 401) {
-        // @HACK
-        /* eslint-disable no-underscore-dangle */
-        window.g_app._store.dispatch({
-          type: 'login/logout',
-        });
-        return;
-      }
-      // environment should not be used
-      if (status === 403) {
-        router.push('/exception/403');
-        return;
-      }
-      if (status <= 504 && status >= 500) {
-        router.push('/exception/500');
-        return;
-      }
-      if (status >= 404 && status < 422) {
-        router.push('/exception/404');
-      }
-    });
+  return (
+    fetch(url, newOptions)
+      .then(checkStatus)
+      // .then(response => cachedSave(response, hashcode))
+      .then(response => {
+        // DELETE and 204 do not return data by default
+        // using .json will report an error.
+        if (newOptions.method === 'DELETE' || response.status === 204) {
+          return response.text();
+        }
+        return response.json();
+      })
+      .catch(e => {
+        const status = e.name;
+        if (status === 401 || status === 400) {
+          // @HACK
+          /* eslint-disable no-underscore-dangle */
+          window.g_app._store.dispatch({
+            type: 'login/logout',
+          });
+          return;
+        }
+        // environment should not be used
+        if (status === 403) {
+          router.push('/exception/403');
+          return;
+        }
+        if (status <= 504 && status >= 500) {
+          router.push('/exception/500');
+          return;
+        }
+        if (status >= 404 && status < 422) {
+          router.push('/exception/404');
+        }
+      })
+  );
 }

@@ -51,7 +51,10 @@ export async function fakeSubmitForm(params) {
 }
 
 export async function fakeChartData() {
-  return request('/api/fake_chart_data');
+  return request('/api/fake_chart_data', {
+    method: 'POST',
+    body: params,
+  });
 }
 
 export async function queryTags() {
@@ -104,7 +107,7 @@ export async function updateFakeList(params) {
 }
 
 export async function fakeAccountLogin(params) {
-  return request('/api/login/account', {
+  return request('/api/login/token', {
     method: 'POST',
     body: params,
   });

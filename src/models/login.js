@@ -1,7 +1,7 @@
 import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
 import { fakeAccountLogin, getFakeCaptcha } from '@/services/api';
-import { setAuthority } from '@/utils/authority';
+import { setAuthority, getToken, setToken } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
@@ -20,7 +20,7 @@ export default {
         payload: response,
       });
       // Login successfully
-      if (response.status === 'ok') {
+      if (response.code == '0') {
         reloadAuthorized();
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
@@ -38,6 +38,7 @@ export default {
           }
         }
         yield put(routerRedux.replace(redirect || '/'));
+      } else {
       }
     },
 
@@ -67,7 +68,10 @@ export default {
 
   reducers: {
     changeLoginStatus(state, { payload }) {
+      payload.currentAuthority = 'admin';
       setAuthority(payload.currentAuthority);
+      setToken(payload.data);
+      getToken('access_token');
       return {
         ...state,
         status: payload.status,
